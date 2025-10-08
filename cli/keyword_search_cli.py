@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from search import searchTitle
+from lib.keyword_search import search_command
 
 import argparse
 
@@ -16,7 +16,9 @@ def main() -> None:
     match args.command:
         case "search":
             print(f'Searching for: {args.query}')
-            searchTitle(args.query)
+            results = search_command(args.query)
+            for i, res in enumerate(results, 1):
+                print(f"{i}. {res['title']}")
         case _:
             parser.print_help()
 
