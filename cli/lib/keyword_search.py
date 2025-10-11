@@ -1,4 +1,5 @@
 import os
+import sys
 import string
 import pickle
 from nltk.stem import PorterStemmer
@@ -13,13 +14,20 @@ from .search_utils import (
 )
 
 def search_command(query: str, limit: int = DEFAULT_SEARCH_LIMIT) -> list[dict]:
-    movies = load_movies()
-    results = []
-    for movie in movies:
-        query_tokens = tokenize_text(query)
-        title_tokens = tokenize_text(movie["title"])
-        if has_matching_token(query_tokens, title_tokens):
-            results.append(movie)
+    inverted_index = InvertedIndex()
+    inverted_index.load()
+    query_tokens = tokenize_text(query)
+    seen, results = set(), []   
+    for token in query_tokens:
+        doc_ids = inverted_index.get_documents(token)
+        for id in doc_ids:
+            if id in seen:
+                continue
+            seen.add(id)
+            doc = inverted_index.docmap[id]
+            if not doc:
+                continue
+            results.append(doc)
             if len(results) >= limit:
                 return results
     return results
@@ -29,7 +37,7 @@ def process_text(text: str) -> list[str]:
     text = text.translate(str.maketrans("", "", string.punctuation))
     return text
 
-def has_matching_token(query_tokens: list[str],title_tokens: list[str]) -> bool:
+def has_matching_token(query_tokens: list[str], title_tokens: list[str]) -> bool:
     for query_token in query_tokens:
         for title_token in title_tokens:
             if query_token in title_token:
@@ -86,9 +94,13 @@ class InvertedIndex:
         with open(self.docmap_path, "wb") as f_docmap:
             pickle.dump(self.docmap, f_docmap)
 
+    def load(self):
+        with open(self.index_path, "rb") as f_index:
+            self.index = pickle.load(f_index)
+        with open(self.docmap_path, "rb") as f_docmap:
+            self.docmap = pickle.load(f_docmap)
+
 def build_command():
     idx = InvertedIndex()
     idx.build()
     idx.save()
-    docs = idx.get_documents("merida")
-    print(f"First document for token 'merida' = {docs[0]}")
