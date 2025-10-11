@@ -1,7 +1,7 @@
 import os
-import sys
 import string
 import pickle
+import math
 from nltk.stem import PorterStemmer
 
 from collections import defaultdict, Counter
@@ -66,7 +66,7 @@ class InvertedIndex:
     def __init__(self):
         self.index = defaultdict(set) #token (strings) -set of doc ids
         self.docmap: dict[int, dict] = {} #doc ID (int) - full document object
-        self.term_frequencies: dict[int, Counter] = {}
+        self.term_frequencies: dict[int, Counter] = {} #doc id (int) - counter object (term: frequency)
         self.index_path = os.path.join(CACHE_DIR, "index.pkl")
         self.docmap_path = os.path.join(CACHE_DIR, "docmap.pkl")
         self.term_frequencies_path = os.path.join(CACHE_DIR, "term_frequencies.pkl")
@@ -118,9 +118,17 @@ def build_command():
     idx.build()
     idx.save()
 
-def tf_command(doc_id: int, term: str):
+def tf_command(doc_id: int, term: str) -> int:
     idx = InvertedIndex()
     idx.load()
     return idx.get_tf(doc_id, term)
+
+def idf_command(term: str) -> float:
+    idx = InvertedIndex()
+    idx.load()
+    token_term = tokenize_text(term)
+    doc_count = len(idx.docmap)
+    term_doc_count = len(idx.index[token_term[0]])
+    return math.log((doc_count + 1) / (term_doc_count + 1))
 
 
