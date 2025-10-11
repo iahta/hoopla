@@ -66,16 +66,16 @@ class InvertedIndex:
     def __init__(self):
         self.index = defaultdict(set) #token (strings) -set of doc ids
         self.docmap: dict[int, dict] = {} #doc ID (int) - full document object
-        self.term_frequencies: dict[int, Counter] = {} #doc id (int) - counter object (term: frequency)
+        self.term_frequencies = defaultdict(Counter) #doc id (int) - counter object (term: frequency)
         self.index_path = os.path.join(CACHE_DIR, "index.pkl")
         self.docmap_path = os.path.join(CACHE_DIR, "docmap.pkl")
         self.term_frequencies_path = os.path.join(CACHE_DIR, "term_frequencies.pkl")
 
     def __add_document(self, doc_id: int, text: str):
-        tokenized_text = tokenize_text(text)
-        self.term_frequencies[doc_id] = Counter(tokenized_text)
-        for token in set(tokenized_text):
+        tokens = tokenize_text(text)
+        for token in set(tokens):
             self.index[token].add(doc_id)
+        self.term_frequencies[doc_id].update(tokens)
 
     def get_documents(self, term: str):
         term = term.lower()
@@ -84,7 +84,7 @@ class InvertedIndex:
 
     def get_tf(self, doc_id: int, term: str) -> int:
         tokenized_text = tokenize_text(term)
-        if len(tokenized_text) > 1:
+        if len(tokenized_text) != 1:
             raise ValueError("More than one token")
         return self.term_frequencies[doc_id][tokenized_text[0]]
     
@@ -97,11 +97,18 @@ class InvertedIndex:
         term_doc_count = len(self.index[token])
         return math.log((doc_count + 1) / (term_doc_count + 1))
     
+    def get_tf_idf(self, doc_id: int, term: str) -> float:
+        tf = self.get_tf(doc_id, term)
+        idf = self.get_idf(term)
+        print(tf)
+        print(idf)
+        return tf * idf
+    
     def build(self):
         movies = load_movies()
         for movie in movies:
             doc_id = movie["id"]
-            doc_description = f"{movie['title']}{movie['description']}"
+            doc_description = f"{movie['title']} {movie['description']}"
             self.docmap[movie["id"]] = movie
             self.__add_document(doc_id, doc_description)
             
@@ -137,4 +144,8 @@ def idf_command(term: str) -> float:
     idx.load()
     return idx.get_idf(term)
 
+def tf_idf_command(doc_id: int, term: str) -> float:
+    idx = InvertedIndex()
+    idx.load()
+    return idx.get_tf_idf(doc_id, term)
 
