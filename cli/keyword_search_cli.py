@@ -2,7 +2,7 @@
 from lib.keyword_search import (
     search_command, 
     build_command,
-    InvertedIndex,
+    tf_command,
 )
 
 import argparse
@@ -12,10 +12,15 @@ import argparse
 def main() -> None:
     parser = argparse.ArgumentParser(description="Keyword Search CLI")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
-    subparsers.add_parser("build", help="Build Movie Database")
+
+    subparsers.add_parser("build", help="Build Inverted Index of Movies")
+    
     search_parser = subparsers.add_parser("search", help="Search movies using BM25")
     search_parser.add_argument("query", type=str, help="Search query")
 
+    tf_parser = subparsers.add_parser("tf", help="Show frequncey of a term")
+    tf_parser.add_argument("doc_id", type=int, help="Document ID number")
+    tf_parser.add_argument("text", type=str, help="Term to get frequency for")
 
     args = parser.parse_args()
 
@@ -29,6 +34,10 @@ def main() -> None:
             results = search_command(args.query)
             for i, res in enumerate(results, 1):
                 print(f"{i}. Title: {res['title']} ID: {res['id']}")    
+        case "tf":
+            print(f"Retrieving frequency of {args.text}...")
+            result = tf_command(args.doc_id, args.text)
+            print(f"Term frequency of '{args.text}' in document '{args.doc_id}': {result}")
         case _:
             parser.print_help()
 
