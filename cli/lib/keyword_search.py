@@ -88,6 +88,15 @@ class InvertedIndex:
             raise ValueError("More than one token")
         return self.term_frequencies[doc_id][tokenized_text[0]]
     
+    def get_idf(self, term: str) -> float:
+        tokens = tokenize_text(term)
+        if len(tokens) != 1:
+            raise ValueError("term must be a single token")
+        token = tokens[0]
+        doc_count = len(self.docmap)
+        term_doc_count = len(self.index[token])
+        return math.log((doc_count + 1) / (term_doc_count + 1))
+    
     def build(self):
         movies = load_movies()
         for movie in movies:
@@ -126,9 +135,6 @@ def tf_command(doc_id: int, term: str) -> int:
 def idf_command(term: str) -> float:
     idx = InvertedIndex()
     idx.load()
-    token_term = tokenize_text(term)
-    doc_count = len(idx.docmap)
-    term_doc_count = len(idx.index[token_term[0]])
-    return math.log((doc_count + 1) / (term_doc_count + 1))
+    return idx.get_idf(term)
 
 
