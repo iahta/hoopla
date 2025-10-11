@@ -9,6 +9,7 @@ from collections import defaultdict, Counter
 from .search_utils import (
     CACHE_DIR,
     DEFAULT_SEARCH_LIMIT,
+    BM25_K1,
     load_movies,
     load_stop_words,
 )
@@ -108,6 +109,11 @@ class InvertedIndex:
         #log((N - df + 0.5) / (df + 0.5) + 1)
         return math.log((doc_count - term_doc_count + 0.5) / (term_doc_count + 0.5) + 1)
     
+    def get_bm25_tf (self, doc_id : int, term: str, k1: float = BM25_K1) -> float:
+        #term frequency saturation
+        raw_tf = self.get_tf(doc_id, term)
+        return (raw_tf * (k1 + 1)) / (raw_tf + k1)
+    
     def get_tf_idf(self, doc_id: int, term: str) -> float:
         tf = self.get_tf(doc_id, term)
         idf = self.get_idf(term)
@@ -164,4 +170,9 @@ def bm25_idf_command(term: str) -> float:
     idx = InvertedIndex()
     idx.load()
     return idx.get_bm25_idf(term)
+
+def bm25_tf_command(doc_id: int, term: str, k1: float = BM25_K1) -> float:
+    idx = InvertedIndex()
+    idx.load()
+    return idx.get_bm25_tf(doc_id, term, k1)
 
