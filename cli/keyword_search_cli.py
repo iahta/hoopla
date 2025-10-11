@@ -82,9 +82,8 @@ def main() -> None:
             print(f"BM25 TF score of '{args.term}' in document '{args.doc_id}': {result:.2f}")
         case "bm25search":
             results = bm25search_command(args.query, args.limit)
-            movies = load_movies()
             for i, res in enumerate(results, 1):
-                print(f"{i}. ({res}) Title: {movies[res - 1]["title"]} Score: {results[res]:.2f} ")
+                print(f"{i}. ({res["id"]}) {res["title"]} - Score: {res["score"]:.2f}")
         case _:
             parser.print_help()
 
