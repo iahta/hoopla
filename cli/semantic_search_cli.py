@@ -6,6 +6,10 @@ from lib.semantic_search import (
     verify_embeddings,
     embed_text,
     embed_query_text,
+    search_command,
+)
+from lib.search_utils import (
+    DEFAULT_SEARCH_LIMIT,
 )
 
 
@@ -22,6 +26,10 @@ def main() -> None:
     embed_query_parser = subparsers.add_parser("embedquery", help="Generate vectors for query")
     embed_query_parser.add_argument("query", type=str, help="Query to be embedded")
 
+    search_parser = subparsers.add_parser("search", help="Search the movie database")
+    search_parser.add_argument("query", type=str, help="Query to search movie database")
+    search_parser.add_argument("--limit", type=int, nargs="?", default=DEFAULT_SEARCH_LIMIT, help="Set the limit of search results")
+
     args = parser.parse_args()
 
 
@@ -37,6 +45,10 @@ def main() -> None:
             verify_model()
         case "verify_embeddings":
             verify_embeddings()
+        case "search":
+            results = search_command(args.query, args.limit)
+            for i, res in enumerate(results, 1):
+                print(f"{i}. {res['title']} (score: {res['score']:.4f})\n{res['description']}") 
         case _:
             parser.print_help()
 

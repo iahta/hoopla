@@ -2,8 +2,10 @@ import os
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from .search_utils import (
+    DEFAULT_SEARCH_LIMIT,
     CACHE_DIR,
     load_movies,
+    format_embedded_search_result,
 )
 
 class SemanticSearch:
@@ -45,6 +47,25 @@ class SemanticSearch:
                     return self.embeddings
         return self.build_embeddings(documents)
 
+    def search(self, query, limit):
+        score = []
+        if len(self.embeddings) == 0:
+            raise ValueError("No embeddings loaded. Call `load_or_create_embeddings` first.")
+        query_embedding = self.generate_embedding(query)
+        for i in range(len(self.embeddings)):
+            cosigne = cosine_similarity(query_embedding, self.embeddings[i])
+            score.append((cosigne, self.documents[i]))
+        sorted_scores = sorted(score, key=lambda x: x[0], reverse=True)
+        results = []
+        for score, doc in sorted_scores[:limit]:
+            formatted_result = format_embedded_search_result(
+                score,
+                doc["title"],
+                doc["description"]
+            )
+            results.append(formatted_result)
+        return results
+    
 def verify_model():
     search = SemanticSearch()
     model = search.model
@@ -71,3 +92,20 @@ def embed_query_text(query):
     print(f"Query: {query}")
     print(f"First 5 dimensions: {embedding[:5]}")
     print(f"Shape: {embedding.shape}")
+
+def cosine_similarity(vec1, vec2):
+    dot_product = np.dot(vec1, vec2)
+    norm1 = np.linalg.norm(vec1) #magnitude
+    norm2 = np.linalg.norm(vec2)
+
+    if norm1 == 0 or norm2 == 0:
+        return 0.0
+    return dot_product / (norm1 * norm2)
+
+def search_command(query: str, limit: int = DEFAULT_SEARCH_LIMIT):
+    search = SemanticSearch()
+    movies = load_movies()
+    search.load_or_create_embeddings(movies)
+    results = search.search(query, limit)
+    return results
+    

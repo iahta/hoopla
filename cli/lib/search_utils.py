@@ -31,3 +31,12 @@ def format_search_result (
         "score": round(score, SCORE_PRECISION),
         "metadata": metadata if metadata else {},
     }
+
+def format_embedded_search_result(
+        score: float, title: str, description: str
+) -> dict[int, str, str]:
+    return {
+        "score": score,
+        "title": title,
+        "description": description
+    }
