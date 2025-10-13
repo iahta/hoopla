@@ -3,6 +3,7 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 from .search_utils import (
     DEFAULT_SEARCH_LIMIT,
+    DEFAULT_CHUNK_SIZE,
     CACHE_DIR,
     load_movies,
     format_embedded_search_result,
@@ -49,11 +50,13 @@ class SemanticSearch:
 
     def search(self, query, limit):
         score = []
-        if len(self.embeddings) == 0:
+        if self.embeddings is None or self.embeddings.size == 0:
             raise ValueError("No embeddings loaded. Call `load_or_create_embeddings` first.")
+        if self.documents is None or len(self.documents) == 0:
+            raise ValueError("No documents loaded. Call `load_or_create_embeddings` first.")
         query_embedding = self.generate_embedding(query)
-        for i in range(len(self.embeddings)):
-            cosigne = cosine_similarity(query_embedding, self.embeddings[i])
+        for i, doc_embedding in enumerate(self.embeddings):
+            cosigne = cosine_similarity(query_embedding, doc_embedding)
             score.append((cosigne, self.documents[i]))
         sorted_scores = sorted(score, key=lambda x: x[0], reverse=True)
         results = []
@@ -102,10 +105,17 @@ def cosine_similarity(vec1, vec2):
         return 0.0
     return dot_product / (norm1 * norm2)
 
-def search_command(query: str, limit: int = DEFAULT_SEARCH_LIMIT):
+def semantic_search(query: str, limit: int = DEFAULT_SEARCH_LIMIT):
     search = SemanticSearch()
     movies = load_movies()
     search.load_or_create_embeddings(movies)
     results = search.search(query, limit)
     return results
     
+def chunk_command(text: str, chunk_size: int = DEFAULT_CHUNK_SIZE):
+    words = text.split()
+    chunks = [' '.join(words[i:i + chunk_size]) for i in range(0, len(words), chunk_size)]
+    return chunks
+    
+
+

@@ -6,10 +6,12 @@ from lib.semantic_search import (
     verify_embeddings,
     embed_text,
     embed_query_text,
-    search_command,
+    semantic_search,
+    chunk_command,
 )
 from lib.search_utils import (
     DEFAULT_SEARCH_LIMIT,
+    DEFAULT_CHUNK_SIZE,
 )
 
 
@@ -30,6 +32,10 @@ def main() -> None:
     search_parser.add_argument("query", type=str, help="Query to search movie database")
     search_parser.add_argument("--limit", type=int, nargs="?", default=DEFAULT_SEARCH_LIMIT, help="Set the limit of search results")
 
+    chunk_parser = subparsers.add_parser("chunk", help="Split text into smaller pierces")
+    chunk_parser.add_argument("text", type=str, help="Text to be split")
+    chunk_parser.add_argument("--chunk-size", type=int, nargs="?", default=DEFAULT_CHUNK_SIZE, help="Size of chunk of text")
+    
     args = parser.parse_args()
 
 
@@ -46,9 +52,14 @@ def main() -> None:
         case "verify_embeddings":
             verify_embeddings()
         case "search":
-            results = search_command(args.query, args.limit)
+            results = semantic_search(args.query, args.limit)
             for i, res in enumerate(results, 1):
                 print(f"{i}. {res['title']} (score: {res['score']:.4f})\n{res['description']}") 
+        case "chunk":
+            results = chunk_command(args.text, args.chunk_size)
+            print(f"Chunking {len(args.text)} characters")
+            for i, res in enumerate(results, 1):
+                print(f"{i}. {res}")
         case _:
             parser.print_help()
 
