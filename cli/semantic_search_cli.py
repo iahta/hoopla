@@ -5,6 +5,7 @@ from lib.semantic_search import (
     verify_model,
     verify_embeddings,
     embed_text,
+    embed_query_text,
 )
 
 
@@ -18,7 +19,8 @@ def main() -> None:
     embed_text_parser = subparsers.add_parser("embed_text", help="Generate Text Embedding")
     embed_text_parser.add_argument("text", type=str, help="Text to embed")
 
-
+    embed_query_parser = subparsers.add_parser("embedquery", help="Generate vectors for query")
+    embed_query_parser.add_argument("query", type=str, help="Query to be embedded")
 
     args = parser.parse_args()
 
@@ -27,12 +29,14 @@ def main() -> None:
     
 
     match args.command:
-        case "verify_embeddings":
-            verify_embeddings()
         case "embed_text":
             embed_text(args.text)
+        case "embedquery":
+            embed_query_text(args.query)
         case "verify":
             verify_model()
+        case "verify_embeddings":
+            verify_embeddings()
         case _:
             parser.print_help()
 
