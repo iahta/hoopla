@@ -12,6 +12,7 @@ from lib.semantic_search import (
 from lib.search_utils import (
     DEFAULT_SEARCH_LIMIT,
     DEFAULT_CHUNK_SIZE,
+    DEFAULT_CHUNK_OVERLAP,
 )
 
 
@@ -35,7 +36,8 @@ def main() -> None:
     chunk_parser = subparsers.add_parser("chunk", help="Split text into smaller pierces")
     chunk_parser.add_argument("text", type=str, help="Text to be split")
     chunk_parser.add_argument("--chunk-size", type=int, nargs="?", default=DEFAULT_CHUNK_SIZE, help="Size of chunk of text")
-    
+    chunk_parser.add_argument("--overlap", type=int, nargs="?", default=DEFAULT_CHUNK_OVERLAP, help="Number of words to overlap in a chunk")
+
     args = parser.parse_args()
 
 
@@ -56,10 +58,7 @@ def main() -> None:
             for i, res in enumerate(results, 1):
                 print(f"{i}. {res['title']} (score: {res['score']:.4f})\n{res['description']}") 
         case "chunk":
-            results = chunk_command(args.text, args.chunk_size)
-            print(f"Chunking {len(args.text)} characters")
-            for i, res in enumerate(results, 1):
-                print(f"{i}. {res}")
+            chunk_command(args.text, args.chunk_size, args.overlap)
         case _:
             parser.print_help()
 

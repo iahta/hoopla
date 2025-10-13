@@ -4,6 +4,7 @@ from typing import Any
 
 DEFAULT_SEARCH_LIMIT = 5
 DEFAULT_CHUNK_SIZE = 200
+DEFAULT_CHUNK_OVERLAP = 0
 SCORE_PRECISION = 3
 BM25_K1 = 1.5 #k1 - tunable saturation parameter
 BM25_B = 0.75 #B - normalization strength
