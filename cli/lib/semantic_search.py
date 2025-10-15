@@ -135,10 +135,20 @@ def chunk_command(text: str, chunk_size: int = DEFAULT_CHUNK_SIZE, overlap: int 
         print(f"{i}. {res}")
 
 def semantic_chunk(text: str, chunk_size: int = MAX_CHUNK_SIZE, overlap: int = DEFAULT_SEMANTIC_CHUNK_OVERLAP) -> list[str]:
-    sentences = re.split(r"(?<=[.!?])\s+", text)
     chunks = []
-    n_sentences = len(sentences)
     i = 0
+    text = text.strip()
+    if text == "":
+        return chunks
+    sentences = re.split(r"(?<=[.!?])\s+", text)  
+    if len(sentences) == 1 and not re.search(r"[.!?]$", sentences[0]):
+        sentences = [text]
+    sentences_stripped = []
+    for sentence in sentences:
+        sentence = sentence.strip()
+        if sentence != "":
+            sentences_stripped.append(sentence)
+    n_sentences = len(sentences)
     while i < n_sentences - overlap:
         chunk_sentences = sentences[i : i + chunk_size]
         chunks.append(" ".join(chunk_sentences))
@@ -238,6 +248,6 @@ def search_chunked(query: str, limit: int = DEFAULT_SEARCH_LIMIT):
     search = ChunkedSemanticSearch()
     search.load_or_create_chunk_embeddings(movies)
     results = search.search_chunks(query, limit)
-    for i, result in enumerate(results, 1):
-        print(f"\n{i}. {result["title"]} (score: {result["score"]:.4f})")
+    for i, result in enumerate(results):
+        print(f"\n{i + 1}. {result["title"]} (score: {result["score"]:.4f})")
         print(f"   {result["description"]}...")
