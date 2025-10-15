@@ -10,6 +10,7 @@ from lib.semantic_search import (
     chunk_command,
     semantic_chunks_command,
     embed_chunks_command,
+    search_chunked,
 )
 from lib.search_utils import (
     DEFAULT_SEARCH_LIMIT,
@@ -22,7 +23,7 @@ from lib.search_utils import (
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Semantic Search CLI")
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+    subparsers = parser.add_subparsers(dest="command", required=True, help="Available commands")
 
     subparsers.add_parser("verify", help="Verify Language Model")
     subparsers.add_parser("verify_embeddings", help="Verify embedded text")
@@ -49,6 +50,10 @@ def main() -> None:
 
     subparsers.add_parser("embed_chunks", help="Embed chunks of data")
 
+    search_chunked_parser = subparsers.add_parser("search_chunked", help="Search chunked scores of movies to find the most similiar result")
+    search_chunked_parser.add_argument("query", type=str, help="Query to be chunk searched")
+    search_chunked_parser.add_argument("--limit", type=int, nargs="?", default=DEFAULT_SEARCH_LIMIT, help="Limit the size of your search results")
+
     args = parser.parse_args()
 
 
@@ -74,6 +79,8 @@ def main() -> None:
             chunk_command(args.text, args.chunk_size, args.overlap)
         case "semantic_chunk":
             semantic_chunks_command(args.text, args.max_chunk_size, args.overlap)
+        case "search_chunked":
+            search_chunked(args.query, args.limit)
         case _:
             parser.print_help()
 
