@@ -1,7 +1,12 @@
 import argparse
+import json
 
 from lib.hybrid_search import (
     normalize,
+    weighted_search_command,
+)
+from lib.search_utils import (
+    DEFAULT_SEARCH_LIMIT,
 )
 
 def main() -> None:
@@ -9,8 +14,13 @@ def main() -> None:
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     normalize_parser = subparsers.add_parser("normalize", help="Normalize a list of scores to match semantic scores")
-    normalize_parser.add_argument("scores", type=float, nargs="*", help="Numbers to normalize")
+    normalize_parser.add_argument("scores", type=json.loads, nargs="*", help="Numbers to normalize")
 
+    weighted_search_parser = subparsers.add_parser("weighted-search", help="Weighted Search")
+    weighted_search_parser.add_argument("query", type=str, help="The query to search the documents")
+    weighted_search_parser.add_argument("--alpha", type=float, nargs="?", default=0.5, help="The alpha constant to use in the search")
+    weighted_search_parser.add_argument("--limit", type=int, nargs="?", default=DEFAULT_SEARCH_LIMIT, help="Limit the number of results returned")
+    
     args = parser.parse_args()
 
     match args.command:
@@ -18,6 +28,8 @@ def main() -> None:
             scores = normalize(args.scores)
             for score in scores:
                 print(f"* {score:.4f}")
+        case "weighted-search":
+            weighted_search_command(args.query, args.alpha, args.limit)
         case _:
             parser.print_help()
 

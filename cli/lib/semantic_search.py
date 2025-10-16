@@ -205,7 +205,7 @@ class ChunkedSemanticSearch(SemanticSearch):
         results = self.build_chunk_embeddings(documents)
         return results
     
-    def search_chunks(self, query: str, limit: int = DEFAULT_SEARCH_LIMIT):
+    def search_chunks(self, query: str, limit: int = DEFAULT_SEARCH_LIMIT) -> list[dict]:
         chunks_scores = []
         movie_scores = {}
         query_embedding = self.generate_embedding(query)
@@ -231,6 +231,7 @@ class ChunkedSemanticSearch(SemanticSearch):
             doc = self.document_map[movie_idx]
             results.append(format_embedded_search_result(
                 score,
+                doc["id"],
                 doc["title"],
                 doc["description"][:100]
             ))

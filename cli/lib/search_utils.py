@@ -37,10 +37,11 @@ def format_search_result (
     }
 
 def format_embedded_search_result(
-        score: float, title: str, description: str
+        score: float, doc_id: int, title: str, description: str
 ) -> dict[int, str, str]:
     return {
         "score": score,
+        "id": doc_id,
         "title": title,
         "description": description
     }
