@@ -211,9 +211,9 @@ class ChunkedSemanticSearch(SemanticSearch):
         query_embedding = self.generate_embedding(query)
         for i, chunk_embedding in enumerate(self.chunk_embeddings):
             sim_score = cosine_similarity(query_embedding, chunk_embedding)
-            chunk_data = self.chunk_metadata["chunks"][i]
-            chunk_idx = chunk_data["chunk_idx"]
-            movie_idx = chunk_data["movie_idx"]
+            chunk_data = self.chunk_metadata["chunks"]
+            chunk_idx = chunk_data[i]["chunk_idx"]
+            movie_idx = chunk_data[i]["movie_idx"]
 
             chunks_scores.append({
                 "chunk_idx": chunk_idx,
