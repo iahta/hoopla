@@ -152,7 +152,7 @@ class InvertedIndex:
             formatted_result = format_search_result(
                 doc_id=doc["id"],
                 title=doc["title"],
-                document=doc["description"],
+                desription=doc["description"],
                 score=score,
             )
             results.append(formatted_result)

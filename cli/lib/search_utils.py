@@ -6,6 +6,8 @@ DEFAULT_SEARCH_LIMIT = 5
 DEFAULT_CHUNK_SIZE = 200
 DEFAULT_CHUNK_OVERLAP = 0
 DEFAULT_SEMANTIC_CHUNK_OVERLAP = 1
+ALPHA_CONSTANT_HYBRID = 0.5
+K_CONSTANT_RRF = 60
 MAX_CHUNK_SIZE = 4
 SCORE_PRECISION = 3
 BM25_K1 = 1.5 #k1 - tunable saturation parameter
@@ -26,12 +28,12 @@ def load_stop_words() -> list[str]:
         return f.read().splitlines()
 
 def format_search_result (
-        doc_id: str, title: str, document: str, score: float, **metadata: Any
+        doc_id: str, title: str, desription: str, score: float, **metadata: Any
 ) -> dict[str, Any]:
     return {
         "id": doc_id,
         "title": title,
-        "document": document,
+        "description": desription,
         "score": round(score, SCORE_PRECISION),
         "metadata": metadata if metadata else {},
     }

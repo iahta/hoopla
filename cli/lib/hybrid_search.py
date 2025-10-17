@@ -2,7 +2,11 @@ import os
 
 from .keyword_search import InvertedIndex
 from .semantic_search import ChunkedSemanticSearch
-from lib.search_utils import load_movies
+from lib.search_utils import (
+    load_movies,
+    K_CONSTANT_RRF,
+    DEFAULT_SEARCH_LIMIT,
+)
 
 
 class HybridSearch:
@@ -54,9 +58,52 @@ class HybridSearch:
         weighted_results.sort(key=lambda x: x["hybrid_score"], reverse=True)
         return weighted_results[:limit]
 
-    def rrf_search(self, query, k, limit=10):
-        raise NotImplementedError("RRF hybrid search is not implemented yet.")
-    
+    def rrf_search(self, query, k, limit: int = 10):
+        bm25_results = self._bm25_search(query, (limit * 500))
+        semantic_results = self.semantic_search.search_chunks(query, (limit * 500))
+        
+        doc_map = {}
+
+        for rank, doc in enumerate(bm25_results):
+            doc_id = doc["id"]
+            score = rrf_score(rank, k)
+            if doc_id not in doc_map:
+                doc_map[doc_id] = {
+                    "document": doc,
+                    "bm25_rank": rank,
+                    "semantic_rank": None,
+                    "bm25_rrf": score,
+                    "semantic_rrf": None,
+                    "rrf_sum": None,
+                }
+            else:
+                sum_score = doc_map[doc_id]["semantic_rrf"] + score
+                doc_map[doc_id]["bm25_rank"] = rank
+                doc_map[doc_id]["rrf_sum"] = sum_score
+
+        for rank, doc in enumerate(semantic_results):
+            doc_id = doc["id"]
+            score = rrf_score(rank, k)
+            if doc_id not in doc_map:
+                doc_map[doc_id] = {
+                    "document": doc,
+                    "bm25_rank": None,
+                    "semantic_rank": rank,
+                    "bm25_rrf": None,
+                    "semantic_rrf": score,
+                    "rrf_sum": None,
+                }
+            else:
+                sum_score = doc_map[doc_id]["bm25_rrf"] + score
+                doc_map[doc_id]["semantic_rank"] = rank
+                doc_map[doc_id]["rrf_sum"] = sum_score
+        
+        sorted_doc = dict(sorted(doc_map.items(), key=lambda item: item[1]['rrf_sum'], reverse=True)[:limit])
+        return sorted_doc
+
+def rrf_score(rank, k=60):
+    return 1 / (k + rank)
+
 def normalize(scores: list[dict]) -> list[dict]:
     if not scores:
         return []
@@ -81,5 +128,13 @@ def weighted_search_command(query: str, alpha: float = 0.5, limit: int = 5):
     results = search.weighted_search(query, alpha, limit)
     for i, result in enumerate(results):
         print(f"{i + 1}. {result["title"]}\nHybrid Score: {result["hybrid_score"]:.3f}\nBM25: {result["bm25"]:.3f}, Semantic: {result["semantic"]:.3f}\n{result["description"]}")
-
+    
  
+def rrf_search_command(query: str, k: int = K_CONSTANT_RRF, limit: int = DEFAULT_SEARCH_LIMIT):
+    movies = load_movies()
+    search = HybridSearch(movies)
+    rrf_results = search.rrf_search(query, k, limit)
+    for i, result in enumerate(rrf_results.keys()):
+        score = rrf_results[result]
+        doc = rrf_results[result]["document"]
+        print(f"""{i + 1}. {doc["title"]}\nRRF Score: {score["rrf_sum"]:.3f}\nBM25 Rank: {score["bm25_rank"]}, Semantic Rank: {score["bm25_rank"]}\n{doc["description"][:100]}""")
