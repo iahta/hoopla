@@ -2,7 +2,8 @@ import os
 
 from .keyword_search import InvertedIndex
 from .semantic_search import ChunkedSemanticSearch
-from lib.search_utils import (
+from gemini import enhance_prompt
+from .search_utils import (
     load_movies,
     K_CONSTANT_RRF,
     DEFAULT_SEARCH_LIMIT,
@@ -71,10 +72,10 @@ class HybridSearch:
                 doc_map[doc_id] = {
                     "document": doc,
                     "bm25_rank": rank,
-                    "semantic_rank": None,
+                    "semantic_rank": 0,
                     "bm25_rrf": score,
-                    "semantic_rrf": None,
-                    "rrf_sum": None,
+                    "semantic_rrf": 0,
+                    "rrf_sum": 0,
                 }
             else:
                 sum_score = doc_map[doc_id]["semantic_rrf"] + score
@@ -87,11 +88,11 @@ class HybridSearch:
             if doc_id not in doc_map:
                 doc_map[doc_id] = {
                     "document": doc,
-                    "bm25_rank": None,
+                    "bm25_rank": 0,
                     "semantic_rank": rank,
-                    "bm25_rrf": None,
+                    "bm25_rrf": 0,
                     "semantic_rrf": score,
-                    "rrf_sum": None,
+                    "rrf_sum": 0,
                 }
             else:
                 sum_score = doc_map[doc_id]["bm25_rrf"] + score
@@ -130,9 +131,17 @@ def weighted_search_command(query: str, alpha: float = 0.5, limit: int = 5):
         print(f"{i + 1}. {result["title"]}\nHybrid Score: {result["hybrid_score"]:.3f}\nBM25: {result["bm25"]:.3f}, Semantic: {result["semantic"]:.3f}\n{result["description"]}")
     
  
-def rrf_search_command(query: str, k: int = K_CONSTANT_RRF, limit: int = DEFAULT_SEARCH_LIMIT):
+def rrf_search_command(query: str, k: int = K_CONSTANT_RRF, limit: int = DEFAULT_SEARCH_LIMIT, method: str = ""):
     movies = load_movies()
     search = HybridSearch(movies)
+
+    if method:
+        enhanced_query = enhance_prompt(query, method)
+        if query == enhanced_query:
+            print("No enhancement necessary using original query")
+        else:
+            print( f"Enhanced query ({method}): '{query}' -> {enhanced_query}\n")
+            query = enhanced_query
     rrf_results = search.rrf_search(query, k, limit)
     for i, result in enumerate(rrf_results.keys()):
         score = rrf_results[result]

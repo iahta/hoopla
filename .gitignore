@@ -1,4 +1,5 @@
 .venv
+.env
 /data
 uv.lock
 .python-version

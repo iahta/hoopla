@@ -1,7 +1,9 @@
 import json
 import os
+from dotenv import load_dotenv
 from typing import Any
 
+load_dotenv()
 DEFAULT_SEARCH_LIMIT = 5
 DEFAULT_CHUNK_SIZE = 200
 DEFAULT_CHUNK_OVERLAP = 0
@@ -17,6 +19,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 DATA_PATH = os.path.join(PROJECT_ROOT, "data", "movies.json")
 STOP_WORDS_PATH = os.path.join(PROJECT_ROOT, "data", "stopwords.txt")
 CACHE_DIR = os.path.join(PROJECT_ROOT, "cache")
+GEMINI_API_KEY = api_key = os.environ.get("GEMINI_API_KEY")
 
 def load_movies() -> list[dict]:
     with open(DATA_PATH, "r") as f:
