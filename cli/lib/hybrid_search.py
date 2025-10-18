@@ -2,7 +2,10 @@ import os
 
 from .keyword_search import InvertedIndex
 from .semantic_search import ChunkedSemanticSearch
-from gemini import enhance_prompt
+from gemini import (
+    enhance_prompt,
+    rerank_docs,
+)
 from .search_utils import (
     load_movies,
     K_CONSTANT_RRF,
@@ -131,7 +134,7 @@ def weighted_search_command(query: str, alpha: float = 0.5, limit: int = 5):
         print(f"{i + 1}. {result["title"]}\nHybrid Score: {result["hybrid_score"]:.3f}\nBM25: {result["bm25"]:.3f}, Semantic: {result["semantic"]:.3f}\n{result["description"]}")
     
  
-def rrf_search_command(query: str, k: int = K_CONSTANT_RRF, limit: int = DEFAULT_SEARCH_LIMIT, method: str = ""):
+def rrf_search_command(query: str, k: int = K_CONSTANT_RRF, limit: int = DEFAULT_SEARCH_LIMIT, method: str = "", rerank_method: str = ""):
     movies = load_movies()
     search = HybridSearch(movies)
 
@@ -142,8 +145,17 @@ def rrf_search_command(query: str, k: int = K_CONSTANT_RRF, limit: int = DEFAULT
         else:
             print( f"Enhanced query ({method}): '{query}' -> {enhanced_query}\n")
             query = enhanced_query
+    
     rrf_results = search.rrf_search(query, k, limit)
+    if rerank_method:
+        rrf_results = rerank_docs(query, rrf_results, rerank_method)
+    
     for i, result in enumerate(rrf_results.keys()):
         score = rrf_results[result]
         doc = rrf_results[result]["document"]
-        print(f"""{i + 1}. {doc["title"]}\nRRF Score: {score["rrf_sum"]:.3f}\nBM25 Rank: {score["bm25_rank"]}, Semantic Rank: {score["bm25_rank"]}\n{doc["description"][:100]}\n""")
+        print(f"{i + 1}. {doc["title"]}")
+        if "rerank" in score:
+            print(f"Rerank Score: {score['rerank']:.3f}/10")
+        print(f"RRF Score: {score["rrf_sum"]:.3f}")
+        print(f"BM25 Rank: {score["bm25_rank"]}, Semantic Rank: {score["semantic_rank"]}")
+        print(f"{doc["description"][:100]}")
