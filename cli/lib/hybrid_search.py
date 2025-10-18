@@ -138,7 +138,7 @@ def rrf_search_command(query: str, k: int = K_CONSTANT_RRF, limit: int = DEFAULT
     if method:
         enhanced_query = enhance_prompt(query, method)
         if query == enhanced_query:
-            print("No enhancement necessary using original query")
+            print("No enhancement, using original query")
         else:
             print( f"Enhanced query ({method}): '{query}' -> {enhanced_query}\n")
             query = enhanced_query
@@ -146,4 +146,4 @@ def rrf_search_command(query: str, k: int = K_CONSTANT_RRF, limit: int = DEFAULT
     for i, result in enumerate(rrf_results.keys()):
         score = rrf_results[result]
         doc = rrf_results[result]["document"]
-        print(f"""{i + 1}. {doc["title"]}\nRRF Score: {score["rrf_sum"]:.3f}\nBM25 Rank: {score["bm25_rank"]}, Semantic Rank: {score["bm25_rank"]}\n{doc["description"][:100]}""")
+        print(f"""{i + 1}. {doc["title"]}\nRRF Score: {score["rrf_sum"]:.3f}\nBM25 Rank: {score["bm25_rank"]}, Semantic Rank: {score["bm25_rank"]}\n{doc["description"][:100]}\n""")
