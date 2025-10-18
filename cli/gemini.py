@@ -1,7 +1,9 @@
-import os
+
 from dotenv import load_dotenv
 from google import genai
 import time
+import json
+import re
 
 from lib.search_utils import GEMINI_API_KEY
 
@@ -73,10 +75,11 @@ Query: "{query}"
     return content.text
     
 
-def rerank_docs(query: str, rrf_results: dict, method: str):
+def rerank_docs(query: str, rrf_results: dict, method: str, limit: int):
     api_key = GEMINI_API_KEY
     client = genai.Client(api_key=api_key)
-    print(f"Reranking Using key {api_key[:6]}...")
+    print(f"Reranking Using {method} method...")
+
     match method:
         case "individual":
             for result in rrf_results.keys():
@@ -101,11 +104,34 @@ Score:"""
                 
                 rrf_results[result]["rerank"] = float(str(content.text).strip())
                 time.sleep(3)
-        
+            sorted_doc = dict(sorted(rrf_results.items(), key=lambda item: item[1]['rerank'], reverse=True)[:limit])
+        case "batch": 
+            doc_list = []
+            for result in rrf_results.keys():
+                doc_list.append(rrf_results[result]["document"])
+            doc_list_str = str(doc_list)
+            content = client.models.generate_content(
+                    model="gemini-2.0-flash-001",
+                    contents=f"""Rank these movies by relevance to the search query.
+
+Query: "{query}"
+
+Movies:
+{doc_list_str}
+
+Return ONLY the IDs in order of relevance (best match first). Return a valid JSON list, nothing else. For example:
+
+[75, 12, 34, 2, 1]
+"""
+            )
+            cleaned = re.sub(r'```json|```', '', content.text).strip()
+            results = json.loads(cleaned)
+            for i, result in enumerate(results):
+                rrf_results[result]["rerank"] = i + 1
+            sorted_doc = dict(sorted(rrf_results.items(), key=lambda item: item[1]['rerank'])[:limit])
         case _:
             print("no rerank method provided")
             return rrf_results
     
-    sorted_doc = dict(sorted(rrf_results.items(), key=lambda item: item[1]['rerank'], reverse=True))
     return sorted_doc
 

@@ -62,7 +62,7 @@ class HybridSearch:
         weighted_results.sort(key=lambda x: x["hybrid_score"], reverse=True)
         return weighted_results[:limit]
 
-    def rrf_search(self, query, k, limit: int = 10):
+    def rrf_search(self, query, k, limit: int = 10, rerank_method: str = ""):
         bm25_results = self._bm25_search(query, (limit * 500))
         semantic_results = self.semantic_search.search_chunks(query, (limit * 500))
         
@@ -101,7 +101,10 @@ class HybridSearch:
                 sum_score = doc_map[doc_id]["bm25_rrf"] + score
                 doc_map[doc_id]["semantic_rank"] = rank
                 doc_map[doc_id]["rrf_sum"] = sum_score
-        
+
+        if rerank_method:
+            limit = limit * 5
+            
         sorted_doc = dict(sorted(doc_map.items(), key=lambda item: item[1]['rrf_sum'], reverse=True)[:limit])
         return sorted_doc
 
@@ -146,16 +149,19 @@ def rrf_search_command(query: str, k: int = K_CONSTANT_RRF, limit: int = DEFAULT
             print( f"Enhanced query ({method}): '{query}' -> {enhanced_query}\n")
             query = enhanced_query
     
-    rrf_results = search.rrf_search(query, k, limit)
+    rrf_results = search.rrf_search(query, k, limit, rerank_method)
     if rerank_method:
-        rrf_results = rerank_docs(query, rrf_results, rerank_method)
-    
+        rrf_results = rerank_docs(query, rrf_results, rerank_method, limit)
     for i, result in enumerate(rrf_results.keys()):
         score = rrf_results[result]
         doc = rrf_results[result]["document"]
         print(f"{i + 1}. {doc["title"]}")
         if "rerank" in score:
-            print(f"Rerank Score: {score['rerank']:.3f}/10")
+            match rerank_method:
+                case "individual":
+                    print(f"Rerank Score: {score['rerank']:.3f}/10")
+                case "batch":
+                    print(f"Rerank Rank: {score['rerank']}")
         print(f"RRF Score: {score["rrf_sum"]:.3f}")
         print(f"BM25 Rank: {score["bm25_rank"]}, Semantic Rank: {score["semantic_rank"]}")
         print(f"{doc["description"][:100]}")
