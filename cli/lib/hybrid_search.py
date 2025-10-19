@@ -104,7 +104,7 @@ class HybridSearch:
 
         if rerank_method:
             limit = limit * 5
-            
+
         sorted_doc = dict(sorted(doc_map.items(), key=lambda item: item[1]['rrf_sum'], reverse=True)[:limit])
         return sorted_doc
 
@@ -162,6 +162,8 @@ def rrf_search_command(query: str, k: int = K_CONSTANT_RRF, limit: int = DEFAULT
                     print(f"Rerank Score: {score['rerank']:.3f}/10")
                 case "batch":
                     print(f"Rerank Rank: {score['rerank']}")
+                case "cross_encoder":
+                    print(f"Cross Encoder Score: {score['rerank']:.3f}")
         print(f"RRF Score: {score["rrf_sum"]:.3f}")
         print(f"BM25 Rank: {score["bm25_rank"]}, Semantic Rank: {score["semantic_rank"]}")
         print(f"{doc["description"][:100]}")

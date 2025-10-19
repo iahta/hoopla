@@ -6,6 +6,7 @@ import json
 import re
 
 from lib.search_utils import GEMINI_API_KEY
+from sentence_transformers import CrossEncoder
 
 
 
@@ -129,6 +130,16 @@ Return ONLY the IDs in order of relevance (best match first). Return a valid JSO
             for i, result in enumerate(results):
                 rrf_results[result]["rerank"] = i + 1
             sorted_doc = dict(sorted(rrf_results.items(), key=lambda item: item[1]['rerank'])[:limit])
+        case "cross_encoder":
+            pairs = []
+            cross_encoder = CrossEncoder("cross-encoder/ms-marco-TinyBERT-L2-v2")
+            for result in rrf_results.keys():
+                doc = rrf_results[result].get('document', '')
+                pairs.append([query, f"{doc.get('title', '')} - {doc}"])
+            scores = cross_encoder.predict(pairs)
+            for i, result in enumerate(rrf_results.keys()):
+                rrf_results[result]["rerank"] = scores[i]
+            sorted_doc = dict(sorted(rrf_results.items(), key=lambda item: item[1]['rerank'], reverse=True)[:limit])
         case _:
             print("no rerank method provided")
             return rrf_results
