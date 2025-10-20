@@ -20,6 +20,7 @@ DATA_PATH = os.path.join(PROJECT_ROOT, "data", "movies.json")
 STOP_WORDS_PATH = os.path.join(PROJECT_ROOT, "data", "stopwords.txt")
 CACHE_DIR = os.path.join(PROJECT_ROOT, "cache")
 GEMINI_API_KEY = api_key = os.environ.get("GEMINI_API_KEY")
+GOLDEN_DATA_PATH = os.path.join(PROJECT_ROOT, "data", "golden_dataset.json")
 
 def load_movies() -> list[dict]:
     with open(DATA_PATH, "r") as f:
