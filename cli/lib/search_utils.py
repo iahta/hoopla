@@ -27,6 +27,10 @@ def load_movies() -> list[dict]:
         data = json.load(f)
     return data["movies"]
 
+def load_golden_dataset() -> list[dict]:
+    with open(GOLDEN_DATA_PATH, "r") as f:
+        return json.load(f)
+
 def load_stop_words() -> list[str]:
     with open(STOP_WORDS_PATH, "r") as f: 
         return f.read().splitlines()
