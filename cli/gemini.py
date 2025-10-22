@@ -179,3 +179,20 @@ Return ONLY the scores in the same order as the they are numbered. Return a vali
     sorted_doc = dict(sorted(results.items(), key=lambda item: item[1]['eval'], reverse=True))
     return sorted_doc
 
+
+def augmented_results(query: str, rrf_results: dict):
+    api_key = GEMINI_API_KEY
+    client = genai.Client(api_key=api_key)
+    formatted_result = formatted_results(rrf_results)
+    content = client.models.generate_content(
+                    model="gemini-2.0-flash-001",
+                    contents = f"""Answer the question or provide information based on the provided documents. This should be tailored to Hoopla users. Hoopla is a movie streaming service.
+
+Query: {query}
+
+Documents:
+{formatted_result}
+
+Provide a comprehensive answer that addresses the query:"""
+                )
+    return content.text
