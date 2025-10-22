@@ -17,9 +17,11 @@ def main():
 
     print(f"k={args.limit}\n")
     for query, res in result["results"].items():
+        f1 = 2 * (res["precision"] * res["recall"]) / (res["precision"] + res["recall"])
         print(f"- Query: {query}")
         print(f"    - Precision@{args.limit}: {res["precision"]:.4f}")
         print(f"    - Recall@{args.limit}: {res["recall"]:.4f}")
+        print(f"    - F1 Score: {f1:.4f}")
         print(f"    - Retrieved: {", ".join(res["retrieved"])}")
         print(f"    - Relevant: {", ".join(res["relevant"])}")
         print()

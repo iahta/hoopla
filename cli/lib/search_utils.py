@@ -55,3 +55,23 @@ def format_embedded_search_result(
         "title": title,
         "description": description
     }
+
+def formatted_results(results: dict, rerank_method: str = ""):
+    lines = []
+    for i, result in enumerate(results.keys()):
+        score = results[result]
+        doc = results[result]["document"]
+
+        lines.append(f"{i + 1}. {doc["title"]}")
+        if "rerank" in score:
+            match rerank_method:
+                case "individual":
+                    lines.append(f"Rerank Score: {score['rerank']:.3f}/10")
+                case "batch":
+                    lines.append(f"Rerank Rank: {score['rerank']}")
+                case "cross_encoder":
+                    lines.append(f"Cross Encoder Score: {score['rerank']:.3f}")
+        lines.append(f"RRF Score: {score["rrf_sum"]:.3f}")
+        lines.append(f"BM25 Rank: {score["bm25_rank"]}, Semantic Rank: {score["semantic_rank"]}")
+        lines.append(f"{doc["description"][:100]}")
+    return "\n".join(lines)

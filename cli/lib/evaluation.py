@@ -8,7 +8,7 @@ from lib.semantic_search import SemanticSearch
 
 def is_close_match(a: str, b: str, threshold: int = 80) -> bool:
     return fuzz.token_set_ratio(a, b) >= threshold
-"""
+
 def precision_at_k(retrieved_docs: list[str], relevant_docs: set[str], k: int = 5) -> float:
     top_k = retrieved_docs[:k]
     relevant_count = 0
@@ -16,8 +16,8 @@ def precision_at_k(retrieved_docs: list[str], relevant_docs: set[str], k: int = 
         if doc in relevant_docs:
             relevant_count += 1
     return relevant_count / k
-"""
-"""
+
+
 def recall_at_k(retrieved_docs: list[str], relevant_docs: set[str], k: int = 5) -> float:
     top_k = retrieved_docs[:k]
     relevant_count = 0
@@ -25,6 +25,7 @@ def recall_at_k(retrieved_docs: list[str], relevant_docs: set[str], k: int = 5) 
         if doc in relevant_docs:
             relevant_count += 1
     return relevant_count / len(relevant_docs)
+
 """
 def precision_at_k(retrieved_docs: list[str], relevant_docs: set[str], k: int = 5) -> float:
     top_k = retrieved_docs[:k]
@@ -44,7 +45,7 @@ def recall_at_k(retrieved_docs: list[str], relevant_docs: set[str], k: int = 5, 
                 matched_relevant.add(retrieved_doc)
                   # Stop after first match to avoid double-counting
     return len(matched_relevant) / len(relevant_docs) if relevant_docs else 0.0
-
+"""
 def evaluate_command(limit: int = 5) -> dict:
     movies = load_movies()
     golden_data = load_golden_dataset()

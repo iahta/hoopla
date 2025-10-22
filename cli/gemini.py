@@ -5,7 +5,7 @@ import time
 import json
 import re
 
-from lib.search_utils import GEMINI_API_KEY
+from lib.search_utils import GEMINI_API_KEY, formatted_results
 from sentence_transformers import CrossEncoder
 
 
@@ -144,5 +144,38 @@ Return ONLY the IDs in order of relevance (best match first). Return a valid JSO
             print("no rerank method provided")
             return rrf_results
     
+    return sorted_doc
+
+
+def evaluate_results(query: str, results: dict, rerank_method: str = ""):
+    api_key = GEMINI_API_KEY
+    client = genai.Client(api_key=api_key)
+    formatted_result = formatted_results(results, rerank_method)
+    content = client.models.generate_content(
+                    model="gemini-2.0-flash-001",
+                    contents=f"""Rate how relevant each result is to this query on a 0-3 scale. The current rankings are numbered.:
+
+Query: "{query}"
+
+Results:
+{formatted_result}
+
+Scale:
+- 3: Highly relevant
+- 2: Relevant
+- 1: Marginally relevant
+- 0: Not relevant
+
+Do NOT give any numbers out than 0, 1, 2, or 3.
+
+Return ONLY the scores in the same order as the they are numbered. Return a valid JSON list, nothing else. For example:
+
+[2, 0, 3, 2, 0, 1]"""
+                )
+    cleaned = re.sub(r'```json|```', '', content.text).strip()
+    llm_results = json.loads(cleaned)
+    for i, res in enumerate(results.keys()):
+        results[res]["eval"] = llm_results[i]
+    sorted_doc = dict(sorted(results.items(), key=lambda item: item[1]['eval'], reverse=True))
     return sorted_doc
 
