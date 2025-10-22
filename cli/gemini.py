@@ -196,3 +196,23 @@ Documents:
 Provide a comprehensive answer that addresses the query:"""
                 )
     return content.text
+
+
+def summarize_results(query: str, rrf_results: dict):
+    api_key = GEMINI_API_KEY
+    client = genai.Client(api_key=api_key)
+    formatted_result = formatted_results(rrf_results)
+    content = client.models.generate_content(
+                    model="gemini-2.0-flash-001",
+                    contents = f"""
+Provide information useful to this query by synthesizing information from multiple search results in detail.
+The goal is to provide comprehensive information so that users know what their options are.
+Your response should be information-dense and concise, with several key pieces of information about the genre, plot, etc. of each movie.
+This should be tailored to Hoopla users. Hoopla is a movie streaming service.
+Query: {query}
+Search Results:
+{formatted_result}
+Provide a comprehensive 3-4 sentence answer that combines information from multiple sources:
+"""
+                )
+    return content.text

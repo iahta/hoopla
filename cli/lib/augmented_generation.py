@@ -7,7 +7,10 @@ from .hybrid_search import (
     HybridSearch,
 )
 
-from gemini import augmented_results
+from gemini import (
+    augmented_results,
+    summarize_results,
+)
 
 def rag_command(query: str):
     movies = load_movies()
@@ -21,3 +24,16 @@ def rag_command(query: str):
     print()
     print("RAG Response:")
     print(rag_response)
+
+def summarize_command(query: str, limit: int = DEFAULT_SEARCH_LIMIT):
+    movies = load_movies()
+    rrf_search = HybridSearch(movies)
+    rrf_results = rrf_search.rrf_search(query, K_CONSTANT_RRF, DEFAULT_SEARCH_LIMIT)
+    summary = summarize_results(query, rrf_results)
+    print("Search Results:")
+    for result in rrf_results.keys():
+        doc = rrf_results[result]["document"]
+        print(f" - {doc["title"]}")
+    print()
+    print("LLM Summary:")
+    print(summary)
