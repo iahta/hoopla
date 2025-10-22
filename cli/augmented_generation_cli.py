@@ -3,6 +3,8 @@ import argparse
 from lib.augmented_generation import (
     rag_command,
     summarize_command,
+    citation_command,
+    question_command,
 )
 from lib.search_utils import (
     DEFAULT_SEARCH_LIMIT,
@@ -24,7 +26,13 @@ def main():
     summarize_parser.add_argument("query", type=str, help="Search query to summarize")
     summarize_parser.add_argument("--limit", type=int, nargs="?", default=DEFAULT_SEARCH_LIMIT, help="Limit the search results default 5")
     
+    citations_parser = subparsers.add_parser("citations", help="Summarize search with references")
+    citations_parser.add_argument("query", type=str, help="Search query to summarize")
+    citations_parser.add_argument("--limit", type=int, nargs="?", default=DEFAULT_SEARCH_LIMIT, help="Limit the search results default 5")
 
+    question_parser = subparsers.add_parser("question", help="Ask LLM about results")
+    question_parser.add_argument("query", type=str, help="Your question to the LLM")
+    question_parser.add_argument("--limit", type=int, nargs="?", default=DEFAULT_SEARCH_LIMIT, help="Limit the search results default 5")
 
     args = parser.parse_args()
 
@@ -33,6 +41,10 @@ def main():
             rag_command(args.query)
         case "summarize":
             summarize_command(args.query, args.limit)
+        case "citations":
+           citation_command(args.query, args.limit) 
+        case "question":
+           question_command(args.query, args.limit) 
         case _:
             parser.print_help()
 

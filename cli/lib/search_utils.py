@@ -73,5 +73,5 @@ def formatted_results(results: dict, rerank_method: str = ""):
                     lines.append(f"Cross Encoder Score: {score['rerank']:.3f}")
         lines.append(f"RRF Score: {score["rrf_sum"]:.3f}")
         lines.append(f"BM25 Rank: {score["bm25_rank"]}, Semantic Rank: {score["semantic_rank"]}")
-        lines.append(f"{doc["description"][:100]}")
+        lines.append(f"{doc["description"]}")
     return "\n".join(lines)
