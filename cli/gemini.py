@@ -1,6 +1,7 @@
 
 from dotenv import load_dotenv
 from google import genai
+from google.genai import types
 import time
 import json
 import re
@@ -269,3 +270,26 @@ Instructions:
 Answer:"""
                 )
     return content.text
+
+
+def multimodal_results(query: str, img: bytes, mime: str):
+    api_key = GEMINI_API_KEY
+    client = genai.Client(api_key=api_key)
+    prompt = """
+Given the included image and text query, rewrite the text query to improve search results from a movie database. Make sure to:
+- Synthesize visual and textual information
+- Focus on movie-specific details (actors, scenes, style, etc.)
+- Return only the rewritten query, without any additional commentary
+"""
+    parts = [
+        prompt,
+        types.Part.from_bytes(data=img, mime_type=mime),
+        query.strip()
+    ]
+    content = client.models.generate_content(
+                    model="gemini-2.0-flash-001",
+                    contents=parts
+                )
+    print(f"Rewritten query: {content.text.strip()}")
+    if content.usage_metadata is not None:
+        print(f"Total tokens:    {content.usage_metadata.total_token_count}")

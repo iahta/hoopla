@@ -35,6 +35,10 @@ def load_stop_words() -> list[str]:
     with open(STOP_WORDS_PATH, "r") as f: 
         return f.read().splitlines()
 
+def load_image(path: str) -> bytes:
+    with open(path, "rb") as f:
+        return f.read()
+
 def format_search_result (
         doc_id: str, title: str, desription: str, score: float, **metadata: Any
 ) -> dict[str, Any]:
